@@ -30,12 +30,23 @@ sudo ln $SPARK_HOME/bin/spark-submit /usr/bin/spark-submit
 sudo ln $SPARK_HOME/sbin/start-master.sh /usr/bin/start-master
 sudo ln $SPARK_HOME/sbin/start-worker.sh /usr/bin/start-worker
 
+sudo ln $SPARK_HOME/sbin/stop-master.sh /usr/bin/stop-master
+sudo ln $SPARK_HOME/sbin/stop-worker.sh /usr/bin/stop-worker
+
 cd ~
 sudo yum install git -y
 git clone https://github.com/kojiboji/dvs.git
 cd dvs
+
+python3 -m venv spark_env
+source spark_env/bin/activate
 pip3 install -r requirements.txt
+
+echo "export PYSPARK_PYTHON=./spark_env/bin/python" >> ~/.bashrc
+echo "export PYSPARK_DRIVER_PYTHON=./spark_env/bin/python" >> ~/.bashrc
+source ~/.bashrc
+
 
 sudo yum install opencv -y
 
-#manually run aws-configure to access s3
+#manually run 'aws configure' to access s3

@@ -1,46 +1,39 @@
-import cv2
+import pprint
+import argparse
+import boto3
+from pyspark.sql import SparkSession
 import stitch
 import task
-import math
-from pyspark.sql import SparkSession
+import logging
 
+# 0 is the job name ('out' creates an 'out.mp4')
+# 1 is the size of each time slice
+# rest of arguements are video file names
 if __name__ == "__main__":
-    MESSAGE_SIZE = 250000000
-    spark = SparkSession \
-        .builder \
-        .config("spark.driver.memory", "15g") \
-        .config("spark.driver.maxResultSize", "15g") \
-        .appName("PythonSimpleStitch") \
-        .getOrCreate()
+    logger = logging.getLogger("app")
+    logger.info("Hello")
+
+    parser = argparse.ArgumentParser(description='Stitch some videos into panoramas.')
+    parser.add_argument("name", help='the job name ("out" creates an "out.mp4")')
+    parser.add_argument("slice_size", help='the size to split the video in before distribution', type=int)
+    parser.add_argument('videos', metavar='V', nargs='+',
+                        help='videos to stitch')
+    args = parser.parse_args()
+
+    s3_client = boto3.client('s3')
+
+    segments_all = task.preprocess(args.videos, s3_client)
+    # pprint.pprint(segments_all)
+
+    tasks = task.make_tasks(args.name, args.slice_size, segments_all)
+    # pprint.pprint(tasks)
+
+    spark = SparkSession.builder.appName("Dvs").getOrCreate()
     sc = spark.sparkContext
-    sc.setLogLevel("INFO")
-    left_camera = cv2.VideoCapture("/tmp/videos/seoul_3_l.mp4")
-    right_camera = cv2.VideoCapture("/tmp/videos/seoul_3_r.mp4")
+    data = sc.parallelize(tasks)
 
-    FRAME_COUNT = max(left_camera.get(cv2.CAP_PROP_FRAME_COUNT),
-                      right_camera.get(cv2.CAP_PROP_FRAME_COUNT))
-    FRAME_WIDTH = max(left_camera.get(cv2.CAP_PROP_FRAME_WIDTH),
-                      right_camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-    FRAME_HEIGHT = max(left_camera.get(cv2.CAP_PROP_FRAME_HEIGHT),
-                       right_camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    # the two is a magic number, idk why its needed to adjust the size correctly
-    numSlices = math.ceil((FRAME_COUNT * FRAME_WIDTH * FRAME_HEIGHT * 3 * 2) / MESSAGE_SIZE)
-    # the two is a magic number, idk why its needed to adjust the size correctly
-    imgs = task.img_gen(left_camera, right_camera)
-
-    data = sc.parallelize(imgs, numSlices=2)
-    processed = data.mapPartitions(lambda p: stitch.stitch(p)).collect()
-
-    # height, width, depth
-    shape = (0, 0, 0)
-    for (status, img) in processed:
-        if status == 0:
-            shape = tuple([max(current, new) for current, new in zip(shape, img.shape)])
-    fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-    writer = cv2.VideoWriter("/tmp/out.mp4", fourcc, 24.0, (shape[1], shape[0]))
-    for (status, img) in processed:
-        if status == 0:
-            # cv2.imshow("image", zero_resize(img, shape))
-            writer.write(stitch.zero_resize(img, shape))
-            # cv2.waitKey(1)
-    writer.release()
+    processed = data.map(lambda p:
+                         stitch.stitch(p)
+                         ).collect()
+    for file in processed:
+        print(file)
