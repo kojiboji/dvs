@@ -78,10 +78,11 @@ rm Python-3.6.4.tar.xz
 sudo rm -rf Python-3.6.4
 
 cd ~/dvs
-pip3 install --upgrade virtualenv
+pip3 install --user --upgrade virtualenv
 virtualenv --python=/usr/local/bin/python3 spark_env
 source spark_env/bin/activate
 pip3 install -r requirements.txt
+mkdir videos
 
 echo "export PYSPARK_PYTHON=/home/ec2-user/dvs/spark_env/bin/python" >> ~/.bashrc
 echo "export PYSPARK_DRIVER_PYTHON=/home/ec2-user/dvs/spark_env/bin/python" >> ~/.bashrc
