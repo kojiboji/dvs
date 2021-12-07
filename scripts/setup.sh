@@ -82,9 +82,9 @@ pip3 install --upgrade virtualenv
 virtualenv --python=/usr/local/bin/python3 spark_env
 source spark_env/bin/activate
 pip3 install -r requirements.txt
-cd dvs
 
-# todo
 echo "export PYSPARK_PYTHON=/home/ec2-user/dvs/spark_env/bin/python" >> ~/.bashrc
 echo "export PYSPARK_DRIVER_PYTHON=/home/ec2-user/dvs/spark_env/bin/python" >> ~/.bashrc
 source ~/.bashrc
+
+#run 'aws configure' manually to give node access to the s3 buckets
