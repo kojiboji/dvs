@@ -2,7 +2,6 @@ import cv2
 import stitch
 import task
 import math
-
 from pyspark.sql import SparkSession
 
 if __name__ == "__main__":

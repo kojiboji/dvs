@@ -6,7 +6,7 @@ import boto3
 
 def stitch(partitions):
     s3_client = boto3.client('s3')
-    s3_client.list_buckets()
+    print(s3_client.list_buckets())
     stitcher = cv2.createStitcher() if imutils.is_cv3() else cv2.Stitcher_create()
     for element in partitions:
         ret = (status, stitched) = stitcher.stitch([element[0], element[1]])
