@@ -36,17 +36,55 @@ sudo ln $SPARK_HOME/sbin/stop-worker.sh /usr/bin/stop-worker
 cd ~
 sudo yum install git -y
 git clone https://github.com/kojiboji/dvs.git
-cd dvs
-
-python3 -m venv spark_env
-source spark_env/bin/activate
-pip3 install -r requirements.txt
-
-echo "export PYSPARK_PYTHON=./spark_env/bin/python" >> ~/.bashrc
-echo "export PYSPARK_DRIVER_PYTHON=./spark_env/bin/python" >> ~/.bashrc
-source ~/.bashrc
 
 
 sudo yum install opencv -y
 
-#manually run 'aws configure' to access s3
+
+#install the right python
+# install pre-requisites
+sudo yum -y groupinstall development
+sudo yum -y install zlib-devel
+sudo yum -y install openssl-devel
+
+
+# Installing openssl-devel alone seems to result in SSL errors in pip (see https://medium.com/@moreless/pip-complains-there-is-no-ssl-support-in-python-edbdce548852)
+# Need to install OpenSSL also to avoid these errors
+wget https://github.com/openssl/openssl/archive/OpenSSL_1_0_2l.tar.gz
+tar -zxvf OpenSSL_1_0_2l.tar.gz
+cd openssl-OpenSSL_1_0_2l/
+
+./config shared
+make
+sudo make install
+export LD_LIBRARY_PATH=/usr/local/ssl/lib/
+
+cd ..
+rm OpenSSL_1_0_2l.tar.gz
+rm -rf openssl-OpenSSL_1_0_2l/
+
+
+# Install Python 3.6.4
+wget https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz
+tar xJf Python-3.6.4.tar.xz
+cd Python-3.6.4
+
+./configure
+make
+sudo make install
+
+cd ..
+rm Python-3.6.4.tar.xz
+sudo rm -rf Python-3.6.4
+
+cd ~/dvs
+pip3 install --upgrade virtualenv
+virtualenv --python=/usr/local/bin/python3 spark_env
+source spark_env/bin/activate
+pip3 install -r requirements.txt
+cd dvs
+
+# todo
+echo "export PYSPARK_PYTHON=/home/ec2-user/dvs/spark_env/bin/python" >> ~/.bashrc
+echo "export PYSPARK_DRIVER_PYTHON=/home/ec2-user/dvs/spark_env/bin/python" >> ~/.bashrc
+source ~/.bashrc
