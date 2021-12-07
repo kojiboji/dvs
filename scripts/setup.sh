@@ -5,6 +5,7 @@ sudo unzip awscliv2.zip
 sudo ./aws/install
 sudo rm awscliv2.zip
 
+#ffmpeg is only needed on the "driver"
 sudo mkdir -v -p /usr/local/bin/ffmpeg
 cd /usr/local/bin/ffmpeg
 sudo wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz
@@ -32,3 +33,9 @@ sudo ln $SPARK_HOME/sbin/start-worker.sh /usr/bin/start-worker
 cd ~
 sudo yum install git -y
 git clone https://github.com/kojiboji/dvs.git
+cd dvs
+pip3 install -r requirements.txt
+
+sudo yum install opencv -y
+
+#manually run aws-configure to access s3
