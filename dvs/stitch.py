@@ -5,9 +5,7 @@ import imutils
 import numpy as np
 import boto3
 import os
-import logging
 import task
-import pprint
 
 
 def stitch(t):
@@ -20,16 +18,13 @@ def stitch(t):
 def stitch_task(t, stitcher, s3_client):
     local_name = constants.DIR_STITCH + t.name
     video_captures, segment_trackers, fps = _initialize(t)
-    print("FPS:", fps)
     video_writer = None
     video_shape = None
     did_write = False
     for i in range(0, math.floor((t.end_time - t.start_time) * fps)):
         did_stitch, pano = stitch_frame(video_captures, segment_trackers, stitcher)
-        print(t.name, ":", did_stitch, ":", i)
         if did_stitch == 0:
             if video_writer is None:
-                print("Camera not open :", local_name)
                 video_shape = pano.shape
                 w = video_shape[1]
                 h = video_shape[0]
@@ -38,17 +33,12 @@ def stitch_task(t, stitcher, s3_client):
                 fourcc = cv2.VideoWriter_fourcc(*"XVID")
                 video_writer = cv2.VideoWriter(local_name, fourcc, fps, (w, h))
             to_write = simple_resize(pano, video_shape)
-            print(to_write.shape)
             did_write = True
             video_writer.write(simple_resize(pano, video_shape))
 
     for vid_cap in video_captures:
         vid_cap.release()
 
-    print("VideoWriter")
-    print(video_writer)
-    print(video_writer is None)
-    print(video_writer is not None)
     if video_writer is not None and did_write:
         video_writer.release()
         s3_client.upload_file(local_name, constants.BUCKET_STITCH, t.name)

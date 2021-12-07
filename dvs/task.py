@@ -3,7 +3,6 @@ import sys
 import math
 import constants
 from typing import NamedTuple
-import pprint
 
 
 class Task(NamedTuple):
@@ -42,7 +41,6 @@ def preprocess(videos, s3_client):
                                                             ExpiresIn=constants.EXPIRES_IN)
                 segments_vid.append(Segment(row[0], float(row[1]), float(row[2]), response))
         segments_all.append(segments_vid)
-    pprint.pprint(segments_all)
     return segments_all
 
 
@@ -57,7 +55,6 @@ def make_tasks(name, slice_size, segments_all):
         tasks.append(Task(task_name, float(i), end_time, [[] for _ in range(len(segments_all))]))
     next_video_ptr = [0] * len(segments_all)
     for task in tasks:
-        pprint.pprint(task)
         for which_video in range(0, len(segments_all)):
             # backtrack once since segments overlap task boundaries
             if next_video_ptr[which_video] > 0:

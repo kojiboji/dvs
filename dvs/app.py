@@ -1,4 +1,3 @@
-import pprint
 import argparse
 import boto3
 from pyspark.sql import SparkSession
@@ -23,10 +22,8 @@ if __name__ == "__main__":
     s3_client = boto3.client('s3')
 
     segments_all = task.preprocess(args.videos, s3_client)
-    # pprint.pprint(segments_all)
 
     tasks = task.make_tasks(args.name, args.slice_size, segments_all)
-    # pprint.pprint(tasks)
 
     spark = SparkSession.builder.appName("Dvs").getOrCreate()
     sc = spark.sparkContext
