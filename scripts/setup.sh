@@ -88,3 +88,4 @@ echo "export PYSPARK_DRIVER_PYTHON=/home/ec2-user/dvs/spark_env/bin/python" >> ~
 source ~/.bashrc
 
 #run 'aws configure' manually to give node access to the s3 buckets
+#set SPARK_MASTER variable to something, eg 'spark://ip-172-31-1-6.us-west-1.compute.internal:7077'

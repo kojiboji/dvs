@@ -24,9 +24,9 @@ mkdir -p /tmp/concat/
 #stitch videos
 #spark-submit --class com.dvs.App app/build/libs/app-all.jar "$1" "$2" "${csvs[@]}" > "/tmp/concat/${1}_base.txt"
 
-scripts/zip_py.sh; spark-submit --master $SPARK_MASTER --executor-memory 3g --py-files pyfiles.zip dvs/app.py "$1" "$2" "${csvs[@]}"
-  | grep "$1"
-  | grep avi > "/tmp/concat/${1}_base.txt"
+scripts/zip_py.sh; spark-submit --master $SPARK_MASTER --executor-memory 3g --py-files pyfiles.zip dvs/app.py "$1" "$2" "${csvs[@]}" |
+  grep "$1" |
+  grep avi > "/tmp/concat/${1}_base.txt"
 
 #concat videos
 scripts/concat.sh "/tmp/concat/${1}_base.txt" "$1"
