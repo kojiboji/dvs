@@ -30,7 +30,7 @@ def stitch_task(t, stitcher, s3_client):
                 h = video_shape[0]
                 w = even_up(w)
                 h = even_up(h)
-                fourcc = cv2.VideoWriter_fourcc(*"XVID")
+                fourcc = cv2.VideoWriter_fourcc(*"MJPG")
                 video_writer = cv2.VideoWriter(local_name, fourcc, fps, (w, h))
             to_write = simple_resize(pano, video_shape)
             did_write = True
