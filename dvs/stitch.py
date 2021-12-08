@@ -8,31 +8,30 @@ import os
 import task
 
 
-def stitch(t):
+def stitch(t, min_overlap):
     os.makedirs(constants.DIR_STITCH, exist_ok=True)
     stitcher = cv2.createStitcher() if imutils.is_cv3() else cv2.Stitcher_create()
     s3_client = boto3.client('s3')
-    return stitch_task(t, stitcher, s3_client)
+    return stitch_task(t, stitcher, min_overlap, s3_client)
 
 
-def stitch_task(t, stitcher, s3_client):
+def stitch_task(t, stitcher, min_overlap, s3_client):
     local_name = constants.DIR_STITCH + t.name
-    video_captures, segment_trackers, fps = _initialize(t)
+    video_captures, segment_trackers, fps, height, width = _initialize(t)
     video_writer = None
-    video_shape = None
     did_write = False
+
+    n_vids = len(t.segments)
+    height = even_up(math.ceil(height))
+    width = even_up(math.ceil(width * (n_vids - (min_overlap * (n_vids - 1)))))
+    video_shape = (height, width, 3)
+
     for i in range(0, math.floor((t.end_time - t.start_time) * fps)):
         did_stitch, pano = stitch_frame(video_captures, segment_trackers, stitcher)
         if did_stitch == 0:
             if video_writer is None:
-                video_shape = pano.shape
-                w = video_shape[1]
-                h = video_shape[0]
-                w = even_up(w)
-                h = even_up(h)
-                video_shape = (h, w, 3)
                 fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-                video_writer = cv2.VideoWriter(local_name, fourcc, fps, (w, h))
+                video_writer = cv2.VideoWriter(local_name, fourcc, fps, (width, height))
             to_write = simple_resize(pano, video_shape)
             did_write = True
             video_writer.write(simple_resize(to_write, video_shape))
@@ -92,5 +91,8 @@ def _initialize(t):
         offset = (t.start_time - first_segment.start_time) * 1000
         vid_cap.set(cv2.CAP_PROP_POS_MSEC, offset)
         video_captures.append(vid_cap)
-
-    return video_captures, segment_trackers, video_captures[0].get(cv2.CAP_PROP_FPS)
+    vid_cap = video_captures[0]
+    fps = vid_cap.get(cv2.CAP_PROP_FPS)
+    height = vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    width = vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    return video_captures, segment_trackers, fps, height, width

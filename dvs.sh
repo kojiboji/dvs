@@ -1,8 +1,9 @@
 # 1 is output name
 # 2 is file segment size
+# 3 is minimum overlap
 # rest are input videos
 
-videos=("${@:3}")
+videos=("${@:4}")
 
 #segment videos
 for vid in "${videos[@]}"
@@ -24,7 +25,7 @@ mkdir -p /tmp/concat/
 #stitch videos
 #spark-submit --class com.dvs.App app/build/libs/app-all.jar "$1" "$2" "${csvs[@]}" > "/tmp/concat/${1}_base.txt"
 
-scripts/zip_py.sh; spark-submit --master $SPARK_MASTER --executor-memory 3g --py-files pyfiles.zip dvs/app.py "$1" "$2" "${csvs[@]}" |
+scripts/zip_py.sh; spark-submit --master $SPARK_MASTER --executor-memory 3g --py-files pyfiles.zip dvs/app.py "$1" "$2" "$3" "${csvs[@]}" |
   grep "$1" |
   grep mp4 > "/tmp/concat/${1}_base.txt"
 
