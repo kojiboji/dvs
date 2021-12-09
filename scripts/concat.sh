@@ -2,6 +2,6 @@
 # 2: output name from dvs.sh
 tmp_dir=/tmp/concat/
 mkdir -p ${tmp_dir}
-xargs -I % sh -c "aws s3api get-object --bucket dvs-stitch --key % ${tmp_dir}% >/dev/null" < "$1"
+xargs -n 1 -P 0 -I % sh -c "aws s3api get-object --bucket dvs-stitch --key % ${tmp_dir}% >/dev/null" < "$1"
 sed -e 's/^/file /' "$1"  > "${tmp_dir}${2}.txt"
 ffmpeg -f concat -i "${tmp_dir}${2}.txt" -c copy ${2}.mp4 -y
