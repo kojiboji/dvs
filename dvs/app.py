@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     spark = SparkSession.builder.appName("Dvs").getOrCreate()
     sc = spark.sparkContext
-    data = sc.parallelize(tasks)
+    data = sc.parallelize(tasks, len(tasks))
 
     processed = data.map(lambda t:
                          stitch.stitch(t, args.min_overlap)
