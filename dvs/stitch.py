@@ -72,9 +72,12 @@ def stitch_frame(video_captures, segment_trackers, stitcher):
     for i, vid_cap in enumerate(video_captures):
         can_grab = vid_cap.grab()
         while not can_grab:
-            next_segment = next(segment_trackers[i])
-            vid_cap.open(next_segment.s3_url)
-            can_grab = vid_cap.grab()
+            try:
+                next_segment = next(segment_trackers[i])
+                vid_cap.open(next_segment.s3_url)
+                can_grab = vid_cap.grab()
+            except StopIteration:
+                return 2, None
     for vid_cap in video_captures:
         frames.append(vid_cap.retrieve()[1])
     return stitcher.stitch(frames)
