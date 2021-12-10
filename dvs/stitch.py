@@ -74,7 +74,7 @@ def stitch_frame(video_captures, segment_trackers, stitcher):
         while not can_grab:
             try:
                 next_segment = next(segment_trackers[i])
-                vid_cap.open(next_segment.s3_url)
+                vid_cap.open(next_segment.s3_url, cv2.CAP_FFMPEG)
                 can_grab = vid_cap.grab()
             except StopIteration:
                 return 2, None
@@ -90,7 +90,7 @@ def _initialize(t):
         segment_pointer = iter(video_segments)
         segment_trackers.append(segment_pointer)
         first_segment = next(segment_pointer)
-        vid_cap = cv2.VideoCapture(first_segment.s3_url)
+        vid_cap = cv2.VideoCapture(first_segment.s3_url, cv2.CAP_FFMPEG)
         offset = (t.start_time - first_segment.start_time) * 1000
         vid_cap.set(cv2.CAP_PROP_POS_MSEC, offset)
         video_captures.append(vid_cap)
