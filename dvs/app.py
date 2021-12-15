@@ -3,15 +3,12 @@ import boto3
 from pyspark.sql import SparkSession
 import stitch
 import task
-import logging
 
 # 0 is the job name ('out' creates an 'out.mp4')
 # 1 is the size of each time slice
+# 2 is the minimun overlap between the views
 # rest of arguements are video file names
 if __name__ == "__main__":
-    logger = logging.getLogger("app")
-    logger.info("Hello")
-
     parser = argparse.ArgumentParser(description='Stitch some videos into panoramas.')
     parser.add_argument("name", help='the job name ("out" creates an "out.mp4")')
     parser.add_argument("slice_size", help='the size to split the video in before distribution', type=int)

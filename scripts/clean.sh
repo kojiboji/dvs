@@ -1,3 +1,5 @@
+# for removing temporary files on the driver
+# for removing temporary files in s3
 rm -rf /tmp/segment
 rm -rf /tmp/pre
 rm -rf /tmp/stitch

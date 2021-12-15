@@ -6,6 +6,9 @@ from typing import NamedTuple
 
 
 class Task(NamedTuple):
+    """A Task that canbe  processed by a Spark executor
+
+    """
     name: str
     start_time: float
     end_time: float
@@ -13,12 +16,20 @@ class Task(NamedTuple):
 
 
 class Segment(NamedTuple):
+    """A video segment
+
+    """
     file_name: str
     start_time: float
     end_time: float
     s3_url: str
 
     def overlaps(self, task):
+        """Checks if a task and segment overlap
+
+        :param task: Task
+        :return: bool
+        """
         # segment starts before task but overlaps
         # segment end after task but overlaps
         # segment is contained in task
@@ -28,6 +39,14 @@ class Segment(NamedTuple):
 
 
 def preprocess(videos, s3_client):
+    """Creates a list of segments read from the provided csvs
+
+    :param videos: list of str
+        the csv files produces by ffmpeg's segment
+    :param s3_client: S3.Client
+        a s3 client used to generate presigned urls
+    :return: list of Segment
+    """
     segments_all = []
     for csv_file in videos:
         segments_vid = []
@@ -45,6 +64,16 @@ def preprocess(videos, s3_client):
 
 
 def make_tasks(name, slice_size, segments_all):
+    """Creates Tasks and assigns appropriate Segments
+
+    :param name: str
+        the name of the output file
+    :param slice_size:
+        the size that tasks should be
+    :param segments_all: list of list of Segment
+        each sublist are the segments for one video
+    :return: list of Task
+    """
     shortest_vid_duration = sys.float_info.max
     for segments_vids in segments_all:
         shortest_vid_duration = min(shortest_vid_duration, segments_vids[-1].end_time)

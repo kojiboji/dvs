@@ -9,6 +9,18 @@ import task
 
 
 def stitch(t, min_overlap):
+    """Stitches the segments specfied by the Task
+
+    Parameters
+    ----------
+    :param t:
+        the Task to be processed
+    :param min_overlap: float
+        the minimun overlap between views of the different cameras
+    :return: str
+        if successful, the s3 key of the generated panorama segment
+        else, None
+    """
     os.makedirs(constants.DIR_STITCH, exist_ok=True)
     stitcher = cv2.createStitcher() if imutils.is_cv3() else cv2.Stitcher_create()
     s3_client = boto3.client('s3')
@@ -16,6 +28,21 @@ def stitch(t, min_overlap):
 
 
 def stitch_task(t, stitcher, min_overlap, s3_client):
+    """Stitches after the necessary infrastructure has been setup
+    Should not be called on its own
+
+    :param t: Task
+        the task to be processed
+    :param stitcher: cv2.Stitcher
+        a OpenCV stitcher
+    :param min_overlap: float
+        the minimun overlap between views of the different cameras
+    :param s3_client: S3.Client
+        the boto3 client used to upload/download videos
+    :return:
+        if successful, the s3 key of the generated panorama segment
+        else, None
+    """
     local_name = constants.DIR_STITCH + t.name
     video_captures, segment_trackers, fps, height, width = _initialize(t)
     video_writer = None
@@ -30,11 +57,12 @@ def stitch_task(t, stitcher, min_overlap, s3_client):
         did_stitch, pano = stitch_frame(video_captures, segment_trackers, stitcher)
         if did_stitch == 0:
             if video_writer is None:
+                #setup the output video
                 fourcc = cv2.VideoWriter_fourcc(*"mp4v")
                 video_writer = cv2.VideoWriter(local_name, fourcc, fps, (width, height))
             to_write = simple_resize(pano, video_shape)
             did_write = True
-            video_writer.write(simple_resize(to_write, video_shape))
+            video_writer.write(to_write)
 
     for vid_cap in video_captures:
         vid_cap.release()
@@ -47,12 +75,13 @@ def stitch_task(t, stitcher, min_overlap, s3_client):
     else:
         return None
 
-
-# write a numpy array 'a' into the h,w,d of the specified 'shape'
-# so that we can write frames of different sizes to the same video
-# if 'a' is larger than the specified shape, crop
-# if 'a' is smaller, fill edges with black
 def simple_resize(a, new_shape):
+    """Resizes numpy array 'a' the h,w,d of the specified 'shape'
+
+    :param a: ndarray
+    :param new_shape: list of int
+    :return: ndarray
+    """
     if a.shape[0] == new_shape[0] and a.shape[1] == new_shape[1]:
         return a
     h = min(a.shape[0], new_shape[0])
@@ -64,10 +93,26 @@ def simple_resize(a, new_shape):
 
 
 def even_up(n):
+    """Takes a number and changes it to the next highest even number
+
+    :param n: the base number
+    :return: n rounded to the next highest even number
+    """
     return n if n % 2 == 0 else n + 1
 
 
 def stitch_frame(video_captures, segment_trackers, stitcher):
+    """Stitches frames from open videos
+
+    :param video_captures: list of cv2.VideoCapture
+        the list of open videos to pull frames from
+    :param segment_trackers: list of iterator of list of Segment
+        list of iterators that point to next video segment
+    :param stitcher: cv2.Stitcher
+        the provided stitcher to do the actual stitching
+    :return: int
+        status code
+    """
     frames = []
     for i, vid_cap in enumerate(video_captures):
         can_grab = vid_cap.grab()
@@ -77,6 +122,7 @@ def stitch_frame(video_captures, segment_trackers, stitcher):
                 vid_cap.open(next_segment.s3_url, cv2.CAP_FFMPEG)
                 can_grab = vid_cap.grab()
             except StopIteration:
+                # this can happen if we fail to open the video files
                 return 2, None
     for vid_cap in video_captures:
         frames.append(vid_cap.retrieve()[1])
@@ -84,6 +130,12 @@ def stitch_frame(video_captures, segment_trackers, stitcher):
 
 
 def _initialize(t):
+    """Setup videos
+
+    :param t: Task
+        the task to process
+    :return: list of cv2.VideoCapture, list of iterator of list of Segment, double, double, double
+    """
     video_captures = []
     segment_trackers = []
     for i, video_segments in enumerate(t.segments):
