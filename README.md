@@ -22,6 +22,45 @@ Master's project to stitch overlapping videos into a panorama. Since the operati
 * __requirements.txt__: Generated from "pip freeze"
 * __video_files.txt__: A list of videos used for testing (useful for input to xargs)
 
+## Videos
+Videos can be accessed from the dvs-input s3 bucket. The videos in the bucket are:
+
+Left views of rush hour traffic, number is duration of video in seconds:
+* traffic_l_80.mp4
+* traffic_l_160.mp4
+* traffic_l_240.mp4
+* traffic_l_320.mp4
+
+Right views of rush hour traffic, number is duration of video in seconds:
+* traffic_r_80.mp4
+* traffic_r_160.mp4
+* traffic_r_240.mp4
+* traffic_r_320.mp4
+
+Stitched output video, 320 seconds long.
+* traffic_out.mp4
+
+Left views of me juggling, number is duration of video in seconds:
+* juggle_l_80.mp4
+* juggle_l_160.mp4
+* juggle_l_240.mp4
+* juggle_l_320.mp4
+
+Right views of me juggling, number is duration of video in seconds:
+* juggle_r_80.mp4
+* juggle_r_160.mp4
+* juggle_r_240.mp4
+* juggle_r_320.mp4
+
+Stitched output video, 320 seconds long.
+* juggle_out.mp4
+
+Videos can be accessed at https://dvs-input.s3.amazonaws.com/{video}.
+For example, juggle_out.mp4 can be accessed at:
+https://dvs-input.s3.amazonaws.com/juggle_out.mp4
+
+
+
 ## Running the Project
 0. spin up a AWS Linux 2 EC2 instance
    1. make sure that you can access the instance from port 22 (ssh) and 8080 (spark master gui)
